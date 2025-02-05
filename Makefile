@@ -13,9 +13,9 @@ else
 endif
 
 SERVICE_NAME = app
-CONTAINER_NAME = cybulde-template-container
+CONTAINER_NAME = demo-work-template-container
 
-DIRS_TO_VALIDATE = cybulde
+DIRS_TO_VALIDATE = demo-work
 DOCKER_COMPOSE_RUN = $(DOCKER_COMPOSE_COMMAND) run --rm $(SERVICE_NAME)
 DOCKER_COMPOSE_EXEC = $(DOCKER_COMPOSE_COMMAND) exec $(SERVICE_NAME)
 
@@ -27,7 +27,7 @@ guard-%:
 
 ## Call entrypoint
 entrypoint: up
-	$(DOCKER_COMPOSE_EXEC) python ./cybulde/entrypoint.py
+	$(DOCKER_COMPOSE_EXEC) python ./demo-work/entrypoint.py
 
 ## Starts jupyter lab
 notebook: up
@@ -150,3 +150,26 @@ help:
 	}' \
 	| more $(shell test $(shell uname) = Darwin && echo '--no-init --raw-control-chars')
 
+# WHAT_TO_PRINT = "Oh posh X"
+# LS_OUTPUT = $(shell ls -al)
+
+# ifeq ($(WHAT_TO_PRINT), "Oh posh")
+# 	PRINT_THIS = "Oh posh"
+# else
+# 	PRINT_THIS = "Oh posh lol"
+# endif
+
+# print-hello-world:
+# 	@echo "hello world!"
+
+# print-hello-world-again: print-hello-world
+# 	@echo "hello world again!!!"
+
+# print-macro:
+# 	@echo $(WHAT_TO_PRINT)
+
+# print-ls-output:
+# 	@echo $(LS_OUTPUT)
+
+# print-if-else:
+# 	@echo $(PRINT_THIS)
