@@ -42,7 +42,7 @@ WORKDIR /app
 
 RUN poetry config virtualenvs.create false \
     && python3.10 -m venv ${VIRTUAL_ENV} \
-    && python3.10 -m pip install --upgrade pip setuptools \
+    && pip install --upgrade pip setuptools \
     && poetry install && cp poetry.lock ${BUILD_POETRY_LOCK} \
     && rm -rf ${HOME}/.cache/*
 
