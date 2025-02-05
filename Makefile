@@ -13,9 +13,9 @@ else
 endif
 
 SERVICE_NAME = app
-CONTAINER_NAME = demo-work-template-container
+CONTAINER_NAME = aywork-template-container
 
-DIRS_TO_VALIDATE = demo-work
+DIRS_TO_VALIDATE = aywork
 DOCKER_COMPOSE_RUN = $(DOCKER_COMPOSE_COMMAND) run --rm $(SERVICE_NAME)
 DOCKER_COMPOSE_EXEC = $(DOCKER_COMPOSE_COMMAND) exec $(SERVICE_NAME)
 
@@ -27,7 +27,7 @@ guard-%:
 
 ## Call entrypoint
 entrypoint: up
-	$(DOCKER_COMPOSE_EXEC) python ./demo-work/entrypoint.py
+	$(DOCKER_COMPOSE_EXEC) python ./aywork/entrypoint.py
 
 ## Starts jupyter lab
 notebook: up

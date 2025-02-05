@@ -2,9 +2,9 @@ services:
   app:
     user: "${USER_ID:-1000}"
     hostname: "${HOST_NAME:-demo}"
-    image: demo-work-template
+    image: aywork-template
     platform: linux/amd64
-    container_name: demo-work-template-container
+    container_name: aywork-template-container
     build:
       context: .
       dockerfile: ./docker/Dockerfile
