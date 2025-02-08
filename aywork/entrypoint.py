@@ -1,3 +1,10 @@
+import sys
+import os
+
+# Add the root directory of the project to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 from aywork.config_schemas.config_schema import Config
 from aywork.utils.config_utils import get_config
 
