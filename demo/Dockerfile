@@ -14,34 +14,17 @@ RUN echo "==> Installing Python3 and pip ...." \
 RUN echo "==> Install dos2unix..." \
   && sudo apt-get install dos2unix -y 
 
-RUN echo "==> Install langchain requirements.." \
-  && pip install -U --quiet langchain_experimental langchain langchain-community langchain-openai \
-  && pip install chromadb \
-  && pip install tiktoken
-
-RUN echo "==> Install jq.." \
-  && pip install jq
-
 RUN echo "==> Install streamlit.." \
   && pip install streamlit --upgrade
 
-# Install tshark
-RUN apt-get update && apt-get install -y tshark
-
-RUN echo "==> Adding pyshark ..." \
-  && pip install pyshark
-
 RUN echo "==> Adding requests ..." \
   && pip install requests
-
-RUN echo "==> Adding dotenv ..." \
-  && pip install python-dotenv
 
   # Set the working directory
 WORKDIR /app
 
 # Copy the required files and directories into the working directory
-COPY packet_kai8.py /app/
+COPY my_app.py /app/
 COPY /scripts /scripts/
 
 RUN echo "==> Convert script..." \

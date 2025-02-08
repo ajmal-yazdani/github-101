@@ -6,141 +6,6 @@ metadata:
     app: ollama
 spec:
   containers:
-  - name: ollama-gemma2
-    image: ollama/ollama:latest
-    imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull gemma2 && tail -f /dev/null']
-    ports:
-    - containerPort: 11434
-    env:
-    - name: OLLAMA_MODEL_PATH
-      value: /models/
-    - name: OLLAMA_HOST
-      value: "127.0.0.1:11434"
-    - name: OLLAMA_KEEP_ALIVE
-      value: "0"
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1Gi"
-        cpu: "500m"
-    volumeMounts:
-    - mountPath: /models
-      name: model-storage
-  - name: ollama-commandr
-    image: ollama/ollama:latest
-    imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull command-r7b && tail -f /dev/null']
-    ports:
-    - containerPort: 11435
-    env:
-    - name: OLLAMA_MODEL_PATH
-      value: /models/
-    - name: OLLAMA_HOST
-      value: "127.0.0.1:11435"
-    - name: OLLAMA_KEEP_ALIVE
-      value: "0"      
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1Gi"
-        cpu: "500m"
-    volumeMounts:
-    - mountPath: /models
-      name: model-storage
-  - name: ollama-llama31
-    image: ollama/ollama:latest
-    imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull llama3.1 && tail -f /dev/null']
-    ports:
-    - containerPort: 11436
-    env:
-    - name: OLLAMA_MODEL_PATH
-      value: /models/
-    - name: OLLAMA_HOST
-      value: "127.0.0.1:11436"
-    - name: OLLAMA_KEEP_ALIVE
-      value: "0"      
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1Gi"
-        cpu: "500m"
-  - name: ollama-llama32
-    image: ollama/ollama:latest
-    imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull llama3.2 && tail -f /dev/null']
-    ports:
-    - containerPort: 11437
-    env:
-    - name: OLLAMA_MODEL_PATH
-      value: /models/
-    - name: OLLAMA_HOST
-      value: "127.0.0.1:11437"
-    - name: OLLAMA_KEEP_ALIVE
-      value: "0"      
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1Gi"
-        cpu: "500m"        
-    volumeMounts:
-    - mountPath: /models
-      name: model-storage
-  - name: ollama-mistral
-    image: ollama/ollama:latest
-    imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull mistral && tail -f /dev/null']
-    ports:
-    - containerPort: 11439
-    env:
-    - name: OLLAMA_MODEL_PATH
-      value: /models/
-    - name: OLLAMA_HOST
-      value: "127.0.0.1:11439"
-    - name: OLLAMA_KEEP_ALIVE
-      value: "0"      
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1Gi"
-        cpu: "500m"
-    volumeMounts:
-    - mountPath: /models
-      name: model-storage
-  - name: ollama-phi4
-    image: ollama/ollama:latest
-    imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull phi4 && tail -f /dev/null']
-    ports:
-    - containerPort: 11440
-    env:
-    - name: OLLAMA_MODEL_PATH
-      value: /models/
-    - name: OLLAMA_HOST
-      value: "127.0.0.1:11440"
-    - name: OLLAMA_KEEP_ALIVE
-      value: "0"      
-    resources:
-      requests:
-        memory: "6Gi"   # Reduced from 8Gi
-        cpu: "4"        # Reduced from 2
-      limits:
-        memory: "8Gi"   # Reduced from 10Gi
-        cpu: "4"        # Reduced from 4
-    volumeMounts:
-    - mountPath: /models
-      name: model-storage
   - name: ollama-deepseek
     image: ollama/ollama:latest
     imagePullPolicy: IfNotPresent
@@ -165,25 +30,19 @@ spec:
     - mountPath: /models
       name: model-storage
   - name: packet-kai8
-    image: johncapobianco/packet_kai8:latest
+    image: johncapobianco/my_app:latest
     imagePullPolicy: IfNotPresent
     ports:
       - containerPort: 8501
     resources:
       requests:
-        memory: "2Gi"
+        memory: "1Gi"
         cpu: "1"
         nvidia.com/gpu: 1  # Request one GPU
       limits:
-        memory: "4Gi"
-        cpu: "2"
+        memory: "1Gi"
+        cpu: "1"
         nvidia.com/gpu: 1  # Limit to one GPU      
-    env:
-      - name: OPENAI_API_KEY
-        valueFrom:
-          secretKeyRef:
-            name: openai-api-key-secret
-            key: OPENAI_API_KEY
   - name: nginx
     image: nginx:latest
     imagePullPolicy: IfNotPresent
