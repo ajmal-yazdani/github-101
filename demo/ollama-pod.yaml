@@ -29,14 +29,14 @@ spec:
     volumeMounts:
     - mountPath: /models
       name: model-storage
-  - name: my_app
-    image: ajmaly/my_app:0.1
+  - name: frontend
+    image: ajmaly/my_app:v1.1
     imagePullPolicy: IfNotPresent
     ports:
       - containerPort: 8501
     env:
       - name: OLLAMA_ENDPOINT
-        value: "http://localhost:80/api/deepseek/generate"
+        value: "http://localhost:80/backend/deepseek/generate"
       - name: MODEL_NAME
         value: "deepseek-r1:1.5b"
     resources:

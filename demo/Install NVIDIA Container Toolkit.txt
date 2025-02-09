@@ -1,0 +1,49 @@
+Install NVIDIA Container Toolkit
+
+# Add NVIDIA Container Toolkit repository
+curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add -
+distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+# Update and install the toolkit
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+sudo systemctl restart docker
+
+nvidia-smi
+sudo apt install nvidia-cuda-toolkit
+
+nvcc --version
+
+test
+docker run --rm --gpus all nvidia/cuda:12.6.3-base-ubuntu20.04 nvidia-smi
+
+Install minikube
+# Download the Minikube binary
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+# Install Minikube
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Verify installation
+minikube version
+C:\Users\shaheem\AppData\Local\Docker\wsl\data
+Start minikube
+minikube start --driver docker --container-runtime docker --gpus all --cpus 16 --memory 7000
+
+Install nvidia image
+kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.15.0/deployments/static/nvidia-device-plugin.yml
+kubectl get pods -n kube-system | grep nvidia
+kubectl describe node
+kubectl describe node | grep nvidia.com/gpu
+docker info | grep "Runtimes"
+kubectl describe node minikube | grep -A10 "Capacity"
+
+kubectl apply -f ollama-pod.yaml
+
+networking
+kubectl get services ollama-service
+
+minikube tunnel
+
+kubectl get services ollama-service
