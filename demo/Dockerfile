@@ -1,26 +1,21 @@
-FROM nvidia/cuda:12.5.0-devel-ubuntu22.04
+FROM nvidia/cuda:12.5.0-runtime-ubuntu22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN echo "==> Upgrading apk and installing system utilities ...." \
- && apt -y update \
- && apt-get install -y wget \
- && apt-get -y install sudo
+RUN echo "==> Upgrading and installing system utilities ...." \
+ && apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    sudo \
+    python3 \
+    python3-pip \
+    dos2unix \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN echo "==> Installing Python3 and pip ...." \  
- && apt-get install python3 -y \
- && apt install python3-pip -y
+RUN echo "==> Installing Python packages ...." \
+ && pip install --no-cache-dir streamlit requests
 
-RUN echo "==> Install dos2unix..." \
-  && sudo apt-get install dos2unix -y 
-
-RUN echo "==> Install streamlit.." \
-  && pip install streamlit --upgrade
-
-RUN echo "==> Adding requests ..." \
-  && pip install requests
-
-  # Set the working directory
+# Set the working directory
 WORKDIR /app
 
 # Copy the required files and directories into the working directory

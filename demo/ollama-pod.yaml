@@ -9,7 +9,7 @@ spec:
   - name: ollama-deepseek
     image: ollama/ollama:latest
     imagePullPolicy: IfNotPresent
-    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull deepseek-r1 && tail -f /dev/null']
+    command: ['sh', '-c', 'ollama start & sleep 20; ollama pull deepseek-r1:1.5b && tail -f /dev/null']
     ports:
     - containerPort: 11441
     env:
@@ -29,11 +29,16 @@ spec:
     volumeMounts:
     - mountPath: /models
       name: model-storage
-  - name: packet-kai8
-    image: johncapobianco/my_app:latest
+  - name: my_app
+    image: ajmaly/my_app:0.1
     imagePullPolicy: IfNotPresent
     ports:
       - containerPort: 8501
+    env:
+      - name: OLLAMA_ENDPOINT
+        value: "http://localhost:80/backend/deepseek/generate"
+      - name: MODEL_NAME
+        value: "deepseek-r1"
     resources:
       requests:
         memory: "1Gi"
@@ -52,6 +57,13 @@ spec:
     - mountPath: /etc/nginx/nginx.conf
       name: nginx-config
       subPath: nginx.conf
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
   volumes:
   - name: model-storage
     emptyDir: {}

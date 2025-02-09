@@ -1,8 +1,13 @@
 import streamlit as st
 import requests
+import os
 
-# Ollama endpoint
-OLLAMA_ENDPOINT = "http://localhost:80/backend/deepseek/generate"
+# Ollama endpoint from environment variable
+OLLAMA_ENDPOINT = os.getenv(
+    "OLLAMA_ENDPOINT", "http://localhost:80/backend/deepseek/generate"
+)
+# Model name from environment variable
+MODEL_NAME = os.getenv("MODEL_NAME", "deepseek-r1")
 
 st.title("Ollama Streamlit Integration")
 
@@ -16,7 +21,7 @@ if st.button("Generate Response"):
     if user_input.strip():
         # Define the payload to send to Ollama
         payload = {
-            "model": "deepseek-r1",
+            "model": MODEL_NAME,
             "prompt": user_input,
             "stream": False,  # Set to True for continuous responses if needed
         }
