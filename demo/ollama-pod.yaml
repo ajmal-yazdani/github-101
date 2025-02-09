@@ -36,9 +36,9 @@ spec:
       - containerPort: 8501
     env:
       - name: OLLAMA_ENDPOINT
-        value: "http://localhost:80/backend/deepseek/generate"
+        value: "http://localhost:80/api/deepseek/generate"
       - name: MODEL_NAME
-        value: "deepseek-r1"
+        value: "deepseek-r1:1.5b"
     resources:
       requests:
         memory: "1Gi"

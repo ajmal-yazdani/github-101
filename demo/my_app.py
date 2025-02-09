@@ -4,10 +4,10 @@ import os
 
 # Ollama endpoint from environment variable
 OLLAMA_ENDPOINT = os.getenv(
-    "OLLAMA_ENDPOINT", "http://localhost:80/backend/deepseek/generate"
+    "OLLAMA_ENDPOINT", "http://localhost:80/api/deepseek/generate"
 )
 # Model name from environment variable
-MODEL_NAME = os.getenv("MODEL_NAME", "deepseek-r1")
+MODEL_NAME = os.getenv("MODEL_NAME", "deepseek-r1:1.5b")
 
 st.title("Ollama Streamlit Integration")
 
