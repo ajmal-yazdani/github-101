@@ -16,6 +16,13 @@ services:
     networks:
       - tutorial-net
     entrypoint: ["/usr/bin/bash", "/pull-llama3.sh"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 networks:
   tutorial-net:
