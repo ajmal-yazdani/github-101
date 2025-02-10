@@ -1,0 +1,51 @@
+
+
+
+
+https://docs.lambdalabs.com/education/large-language-models/k8s-ollama-llama-3-2/
+https://gist.github.com/clemenko/e3a823732c23813b43ac18fef0b24498
+
+
+curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-container-runtime/ubuntu22.04/nvidia-container-runtime.list |  sudo tee /etc/apt/sources.list.d/nvidia-container-runtime.list
+
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+
+sudo apt update
+sudo apt install -y  nvidia-container-runtime
+
+nvidia-container-cli info
+nvidia-smi
+
+
+curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=644 sh -s - --default-runtime=nvidia --disable traefik
+
+
+
+# Copy k3s config to your home directory
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+chmod 600 ~/.kube/config
+
+export KUBECONFIG=~/.kube/config
+
+sudo systemctl status k3s
+
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
+    && chmod 700 get_helm.sh \
+    && ./get_helm.sh
+
+kubectl create ns gpu-operator
+kubectl label --overwrite ns gpu-operator pod-security.kubernetes.io/enforce=privileged
+
+kubectl get nodes -o json | jq '.items[].metadata.labels | keys | any(startswith("feature.node.kubernetes.io"))'
+
+helm repo add nvidia https://helm.ngc.nvidia.com/nvidia \
+    && helm repo update
+
+helm install --wait --generate-name \
+    -n gpu-operator --create-namespace \
+    nvidia/gpu-operator \
+    --version=v24.9.2
+
