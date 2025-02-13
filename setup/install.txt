@@ -1,0 +1,50 @@
+sudo add-apt-repository ppa:git-core/ppa
+sudo apt-get update
+sudo apt-get install git
+
+sudo apt-get install zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+~ .oh-my-zsh
+code ~/.zshrc 
+ZSH_THEME="bira"
+plugins=(git web-search python pyenv virtualenv pip)
+
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+plugins=(git web-search python pyenv virtualenv pip zsh-autosuggestions)
+
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+plugins=(git web-search python pyenv virtualenv pip zsh-autosuggestions zsh-syntax-highlighting)
+
+
+curl -fsSL https://pyenv.run | bash
+
+code ~/.zshrc 
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+
+pyenv install --list | wc -l
+902
+
+
+sudo apt-get update; sudo apt-get install build-essential libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev curl git \
+libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+pyenv install 3.12.0
+
+pyenv global 3.12.0     
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+
+python -m venv ./venv/
+source ./venv/bin/activate  
+
+
+git init
+git config --global user.name "Yazdani, Mohammad Ajmal"  
+git config --global user.email "ajmal.yazdani@gmail.com"
