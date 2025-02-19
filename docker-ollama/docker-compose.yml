@@ -1,7 +1,8 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    hostname: ollama
+    container_name: ollama
+    restart: unless-stopped
     ports:
       - "11434:11434"
     volumes:
@@ -36,6 +37,8 @@ services:
     environment:
       - CURL_CA_BUNDLE=""
       - REQUESTS_CA_BUNDLE=""
+    depends_on:
+      - ollama
 networks:
   genai-network:
     name: genai-network
