@@ -1,5 +1,98 @@
 
 
+🔧 1. Install NVIDIA Drivers (if not already installed)
+Check with:
+
+bash
+Copy
+Edit
+nvidia-smi
+If it returns GPU info, you’re good. If not:
+
+bash
+Copy
+Edit
+sudo apt update
+sudo apt install -y nvidia-driver-535
+sudo reboot
+🔧 2. Install NVIDIA Container Toolkit
+This enables Docker (and containerd) to run GPU workloads.
+
+bash
+Copy
+Edit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) && \
+curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - && \
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+sudo apt update
+sudo apt install -y nvidia-container-toolkit
+🔧 3. Configure containerd (used by K3s) to support NVIDIA runtime
+Create or edit the file:
+
+bash
+Copy
+Edit
+sudo nano /etc/rancher/k3s/registries.yaml
+Add:
+
+yaml
+Copy
+Edit
+configs:
+  default:
+    containerd:
+      default_runtime_name: nvidia
+      runtimes:
+        nvidia:
+          runtime_type: io.containerd.runc.v2
+          options:
+            BinaryName: "nvidia-container-runtime"
+🔄 4. Restart K3s
+Now that the runtime is in place, restart K3s:
+
+bash
+Copy
+Edit
+sudo systemctl restart k3s
+Then check:
+
+bash
+Copy
+Edit
+sudo systemctl status k3s
+You should see it running successfully.
+
+🧪 Optional: Verify NVIDIA Runtime in a Pod
+Create a simple pod spec to use GPU:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-test
+spec:
+  containers:
+  - name: cuda-container
+    image: nvidia/cuda:11.0-base
+    command: ["nvidia-smi"]
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+Apply it:
+
+bash
+Copy
+Edit
+kubectl apply -f gpu-test.yaml
+kubectl logs gpu-test
+
+
+
+
 
 
 https://docs.lambdalabs.com/education/large-language-models/k8s-ollama-llama-3-2/
