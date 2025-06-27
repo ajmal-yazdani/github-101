@@ -1,4 +1,23 @@
-
+🟥 Stop K3s
+bash
+Copy
+Edit
+sudo systemctl stop k3s
+🟩 Start K3s
+bash
+Copy
+Edit
+sudo systemctl start k3s
+🔁 Restart K3s
+bash
+Copy
+Edit
+sudo systemctl restart k3s
+📋 Check Status
+bash
+Copy
+Edit
+sudo systemctl status k3s
 
 🔧 1. Install NVIDIA Drivers (if not already installed)
 Check with:
