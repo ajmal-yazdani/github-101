@@ -1,0 +1,9 @@
+services:
+  lobe-chat:
+    container_name: lobe-chat
+    image: lobe-chat/lobe-chat
+    environment:
+      - OLLAMA_URL=http://127.0.0.1:11434
+    ports:
+      - "3000:3000"
+    restart: always

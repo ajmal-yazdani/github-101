@@ -48,3 +48,11 @@ source ./venv/bin/activate
 git init
 git config --global user.name "Yazdani, Mohammad Ajmal"  
 git config --global user.email "ajmal.yazdani@gmail.com"
+
+https://technotim.live/posts/ai-stack-tutorial/
+https://jinli.io/en/p/deploy-a-private-large-language-model-on-local-or-server-with-ollama-and-lobechat/
+docker compose up -d --build --force-recreate --remove-orphans
+docker exec -it ollama bash
+ollama pull llama3.1
+#GPU Performance Monitoring
+watch -n 0.5 nvidia-smi
