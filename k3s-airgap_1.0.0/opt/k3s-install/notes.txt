@@ -1,0 +1,11 @@
+chmod 755 k3s-airgap_1.0.0/DEBIAN/postinst
+chmod 755 k3s-airgap_1.0.0/DEBIAN/prerm
+
+ Build the .deb Package
+ dpkg-deb --build k3s-airgap_1.0.0
+
+To Install:
+sudo dpkg -i k3s-airgap_1.0.0.deb
+
+To Uninstall:
+sudo dpkg -r k3s-airgap

@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+chmod +x /opt/k3s-install/install-k3s-airgap.sh
+/opt/k3s-install/install-k3s-airgap.sh
+systemctl enable k3s
+systemctl start k3s

@@ -1,0 +1,7 @@
+Package: k3s-airgap
+Version: 1.0.0
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: AJMAL.YAZDANI@GMAIL.COM
+Description: Air-gapped installer for K3s with custom configs and images.

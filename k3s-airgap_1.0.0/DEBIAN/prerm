@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e
+/opt/k3s-install/uninstall-k3s-airgap.sh || true
