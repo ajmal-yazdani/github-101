@@ -1,0 +1,23 @@
+Step 1: Pull and Save Image (on an internet-connected machine)
+docker pull nginx:1.25.3
+docker save nginx:1.25.3 -o nginx_1.25.3.tar
+
+Step 2: Copy .tar to Air-Gapped Machin
+cp /mnt/c/Temp/nginx_1.25.3.tar ~/repos/github-101/k3s-airgap-package/other-images/
+
+Step 3: Import Image into K3s Containerd
+sudo k3s ctr images import nginx_1.25.3.tar
+sudo k3s ctr images list | grep nginx
+
+Set your KUBECONFIG permanently
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+kubectl apply -f nginx-deploy.yaml --validate=false
+kubectl get svc nginx-service
+curl http://localhost:<NodePort>
+
+
+
+
+
+
+
