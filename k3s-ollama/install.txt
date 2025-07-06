@@ -1,116 +1,61 @@
 🟥 Stop K3s
-bash
-Copy
-Edit
 sudo systemctl stop k3s
 🟩 Start K3s
-bash
-Copy
-Edit
 sudo systemctl start k3s
 🔁 Restart K3s
-bash
-Copy
-Edit
 sudo systemctl restart k3s
 📋 Check Status
-bash
-Copy
-Edit
 sudo systemctl status k3s
+🟥 Delete K3s
+ sudo /usr/local/bin/k3s-uninstall.sh  
+ rm -f ~/.kube/config  
 
-🔧 1. Install NVIDIA Drivers (if not already installed)
-Check with:
+ 🔁 Install K3s
+ curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=644 sh -s - --default-runtime=nvidia --disable traefik
 
-bash
-Copy
-Edit
+# Copy k3s config to your home directory
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+chmod 600 ~/.kube/config
+
+export KUBECONFIG=~/.kube/config
+
+kubectl get nodes -o wide
+
 nvidia-smi
-If it returns GPU info, you’re good. If not:
-
-bash
-Copy
-Edit
-sudo apt update
-sudo apt install -y nvidia-driver-535
-sudo reboot
-🔧 2. Install NVIDIA Container Toolkit
-This enables Docker (and containerd) to run GPU workloads.
-
-bash
-Copy
-Edit
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID) && \
-curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - && \
-curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
-sudo apt update
-sudo apt install -y nvidia-container-toolkit
-🔧 3. Configure containerd (used by K3s) to support NVIDIA runtime
-Create or edit the file:
-
-bash
-Copy
-Edit
-sudo nano /etc/rancher/k3s/registries.yaml
-Add:
-
-yaml
-Copy
-Edit
-configs:
-  default:
-    containerd:
-      default_runtime_name: nvidia
-      runtimes:
-        nvidia:
-          runtime_type: io.containerd.runc.v2
-          options:
-            BinaryName: "nvidia-container-runtime"
-🔄 4. Restart K3s
-Now that the runtime is in place, restart K3s:
-
-bash
-Copy
-Edit
-sudo systemctl restart k3s
-Then check:
-
-bash
-Copy
-Edit
-sudo systemctl status k3s
-You should see it running successfully.
-
-🧪 Optional: Verify NVIDIA Runtime in a Pod
-Create a simple pod spec to use GPU:
-
-yaml
-Copy
-Edit
-apiVersion: v1
-kind: Pod
-metadata:
-  name: gpu-test
-spec:
-  containers:
-  - name: cuda-container
-    image: nvidia/cuda:11.0-base
-    command: ["nvidia-smi"]
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-Apply it:
-
-bash
-Copy
-Edit
-kubectl apply -f gpu-test.yaml
-kubectl logs gpu-test
 
 
+Run Your Own OLLAMA in Kubernetes with Nvidia GPU : 
+https://medium.com/@yuxiaojian/run-your-own-ollama-in-kubernetes-with-nvidia-gpu-8974d0c1a9df
 
+Running Ollama on Kubernetes: A Complete Guide : 
+https://collabnix.com/running-ollama-on-kubernetes/
+
+A step-by-step pratical guide for deploying NVIDIA GPUs on Kubernetes :
+ https://mickael-baron.fr/blog/2024/07/19/guide-deploying-nvidiagpu-k8s
+
+https://www.youtube.com/watch?v=vVo3aTakoq4
+
+Ollama Kubernetes Deployment: Cost-Effective and Secure :
+ https://mykubert.com/blog/ollama-kubernetes-deployment-cost-effective-and-secure/
+
+Unlock the Future: Build Your Own Private "ChatGPT" in 30 Minutes with Kubernetes, Ollama, and NVIDIA :
+ https://dev.to/romulofrancas/unlock-the-future-build-your-own-private-chatgpt-in-30-minutes-with-kubernetes-ollama-and-1npp
+
+Run LLMs Locally with GPU Acceleration: Step-by-Step Guide to Setting Up NVIDIA GPU Operator, Ollama, and Open WebUI on Kubernetes :
+ https://medium.com/@suleyman.kutukoglu/run-llms-locally-with-gpu-acceleration-step-by-step-guide-to-setting-up-nvidia-gpu-operator-189bc78a5c49
+
+Adding A GPU node to a K3S Cluster:  
+https://radicalgeek.co.uk/pi-cluster/adding-a-gpu-node-to-a-k3s-cluster/
+
+How to Install K3s with NVIDIA GPU Operator on Ubuntu 22.04 : 
+https://www.atlantic.net/gpu-server-hosting/how-to-install-k3s-with-nvidia-gpu-operator-on-ubuntu-22-04/
+
+Set up LLM-RAG in an air-gapped environment : 
+https://docs.splunk.com/Documentation/DSDL/5.2.0/User/AirGapLLMRAG
+
+Deploying and Managing Ollama Models on Kubernetes: A Comprehensive Guide:
+ https://ai.gopubby.com/deploying-and-managing-ollama-models-on-kubernetes-a-comprehensive-guide-a2b6cd1fea15
 
 
 
@@ -130,19 +75,6 @@ sudo apt install -y  nvidia-container-runtime
 nvidia-container-cli info
 nvidia-smi
 
-
-curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=644 sh -s - --default-runtime=nvidia --disable traefik
-
-
-
-# Copy k3s config to your home directory
-sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-sudo chown $USER:$USER ~/.kube/config
-chmod 600 ~/.kube/config
-
-export KUBECONFIG=~/.kube/config
-
-sudo systemctl status k3s
 
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
     && chmod 700 get_helm.sh \
