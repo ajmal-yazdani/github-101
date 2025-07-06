@@ -11,7 +11,17 @@ NC='\033[0m'
 
 echo -e "${YELLOW}Starting air-gapped K3s installation...${NC}"
 
-# Check K3s binary
+# Copy k3s binary from local package
+echo -e "${YELLOW}Copying k3s binary to /usr/local/bin...${NC}"
+if [ -f ./bin/k3s ]; then
+    sudo cp ./bin/k3s /usr/local/bin/k3s
+    sudo chmod +x /usr/local/bin/k3s
+    echo -e "${GREEN}k3s binary installed at /usr/local/bin/k3s${NC}"
+else
+    echo -e "${RED}ERROR: ./bin/k3s not found!${NC}"
+    exit 1
+fi
+
 if [ ! -x /usr/local/bin/k3s ]; then
     echo -e "${RED}K3s binary not found at /usr/local/bin/k3s. Please copy it there and make it executable.${NC}"
     exit 1
@@ -73,6 +83,13 @@ kube-apiserver-arg:
   - "admission-control-config-file=/opt/k3s-data/server/conf/admission-control.yaml"
 EOF
 
+# Create kubectl symlink
+echo -e "${YELLOW}Creating kubectl symlink...${NC}"
+if [ ! -f /usr/local/bin/kubectl ]; then
+    sudo ln -s /usr/local/bin/k3s /usr/local/bin/kubectl
+    echo -e "${GREEN}kubectl symlink created at /usr/local/bin/kubectl${NC}"
+fi
+
 # Setup systemd service
 echo -e "${YELLOW}Installing K3s systemd service...${NC}"
 sudo tee /etc/systemd/system/k3s.service > /dev/null << EOF
@@ -96,6 +113,30 @@ echo -e "${YELLOW}Starting K3s...${NC}"
 sudo systemctl daemon-reload
 sudo systemctl enable k3s
 sudo systemctl start k3s
+
+# Wait for containerd to be ready
+echo -e "${YELLOW}Waiting for K3s containerd socket to be ready...${NC}"
+timeout=60
+elapsed=0
+while [ ! -S /run/k3s/containerd/containerd.sock ]; do
+  sleep 1
+  elapsed=$((elapsed + 1))
+  if [ $elapsed -ge $timeout ]; then
+    echo -e "${RED}Timeout waiting for containerd.sock!${NC}"
+    exit 1
+  fi
+done
+
+# Import container images
+echo -e "${YELLOW}Importing container images from ./k3s-images...${NC}"
+if [ -d ./k3s-images ]; then
+  for img in ./k3s-images/*.tar; do
+    echo "Importing $img..."
+    sudo /usr/local/bin/k3s ctr images import "$img"
+  done
+else
+  echo -e "${RED}No ./k3s-images directory found. Skipping image import.${NC}"
+fi
 
 # Wait and verify
 echo -e "${YELLOW}Waiting 60s for cluster to stabilize...${NC}"
