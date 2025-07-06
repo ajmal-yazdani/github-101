@@ -1,0 +1,177 @@
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install prerequisites
+sudo apt install -y curl wget systemd
+
+# Disable swap (recommended for Kubernetes)
+sudo swapoff -a
+# To permanently disable, edit /etc/fstab
+
+
+# For K3s API server
+sudo ufw allow 6443/tcp
+
+# For etcd
+sudo ufw allow 2379/tcp
+sudo ufw allow 2380/tcp
+
+# For flannel CNI (default)
+sudo ufw allow 8472/udp
+
+# For metrics server
+sudo ufw allow 10250/tcp
+
+#!/bin/bash
+# K3s installation script with EventRateLimit admission controller configuration
+
+# Exit on any error
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo -e "${YELLOW}Starting K3s installation with custom configuration...${NC}"
+
+# Create necessary directories
+echo -e "${YELLOW}Creating necessary directories...${NC}"
+sudo mkdir -p /etc/rancher/k3s
+sudo mkdir -p /opt/k3s-data
+sudo mkdir -p /opt/k3s-data/server/db/etcd
+sudo mkdir -p /opt/k3s-data/server/tls
+sudo mkdir -p /opt/k3s-data/server/manifests
+sudo mkdir -p /opt/k3s-data/snapshots/etcd
+sudo mkdir -p /opt/k3s-data/server/conf
+
+# Set proper permissions
+sudo chown -R root:root /opt/k3s-data
+sudo chmod 700 /opt/k3s-data/server/db/etcd
+sudo chmod 700 /opt/k3s-data/server/tls
+sudo chmod 700 /opt/k3s-data/snapshots
+
+# Create the EventRateLimit configuration file
+echo -e "${YELLOW}Creating EventRateLimit configuration file...${NC}"
+cat << EOF | sudo tee /opt/k3s-data/server/conf/event-rate-limit.yaml > /dev/null
+apiVersion: eventratelimit.admission.k8s.io/v1alpha1
+kind: Configuration
+limits:
+- type: Server
+  qps: 2000
+  burst: 4000
+  cacheSize: 20000
+- type: Namespace
+  qps: 300
+  burst: 600
+  cacheSize: 3000
+EOF
+
+# Create the AdmissionConfiguration file that points to the EventRateLimit config
+echo -e "${YELLOW}Creating AdmissionConfiguration file...${NC}"
+cat << EOF | sudo tee /opt/k3s-data/server/conf/admission-control.yaml > /dev/null
+apiVersion: apiserver.config.k8s.io/v1
+kind: AdmissionConfiguration
+plugins:
+- name: EventRateLimit
+  path: /opt/k3s-data/server/conf/event-rate-limit.yaml
+EOF
+
+# Set proper permissions for config files
+sudo chmod 600 /opt/k3s-data/server/conf/event-rate-limit.yaml
+sudo chmod 600 /opt/k3s-data/server/conf/admission-control.yaml
+sudo chown root:root /opt/k3s-data/server/conf/event-rate-limit.yaml
+sudo chown root:root /opt/k3s-data/server/conf/admission-control.yaml
+
+# Create a test file in the data directory
+echo "K3s data directory test file - $(date)" | sudo tee /opt/k3s-data/test.txt > /dev/null
+
+# Create K3s config file
+echo -e "${YELLOW}Creating K3s configuration file...${NC}"
+cat << EOF | sudo tee /etc/rancher/k3s/config.yaml > /dev/null
+# K3s configuration
+data-dir: /opt/k3s-data
+write-kubeconfig-mode: "644"
+disable:
+  - traefik
+# Explicit etcd configuration
+cluster-init: true
+etcd-snapshot: true
+etcd-snapshot-schedule-cron: 0 */3 * * *   # Every 3 hours, at minute 0
+etcd-snapshot-retention: 5
+etcd-snapshot-dir: "/opt/k3s-data/snapshots"
+# API server arguments with proper admission configuration
+kube-apiserver-arg:
+  - "enable-admission-plugins=NodeRestriction,EventRateLimit"
+  - "admission-control-config-file=/opt/k3s-data/server/conf/admission-control.yaml"
+EOF
+
+# Install K3s using the config file
+echo -e "${YELLOW}Installing K3s...${NC}"
+export K3S_CONFIG_FILE=/etc/rancher/k3s/config.yaml
+curl -sfL https://get.k3s.io | sh -
+
+# Check if installation was successful
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}K3s installed successfully!${NC}"
+    
+    # Wait for K3s to be ready
+    echo -e "${YELLOW}Waiting for K3s to be ready (60 seconds)...${NC}"
+    sleep 60
+    
+    # Check K3s status
+    sudo systemctl status k3s --no-pager
+    
+    # Check etcd configuration
+    echo -e "${YELLOW}Checking etcd configuration:${NC}"
+    if sudo grep -q "Managed etcd cluster" /var/log/syslog || sudo journalctl -u k3s | grep -q "Managed etcd cluster"; then
+        echo -e "${GREEN}Etcd is running as part of K3s!${NC}"
+    else
+        echo -e "${RED}Etcd may not be running. Check K3s configuration.${NC}"
+    fi
+    
+    # Show kubectl version and nodes
+    echo -e "${YELLOW}Checking kubectl access...${NC}"
+    sudo kubectl get nodes -o wide
+    
+    # Check for errors in the logs
+    echo -e "${YELLOW}Checking for any errors in logs:${NC}"
+    sudo journalctl -u k3s --no-pager | grep -i error | tail -10
+else
+    echo -e "${RED}Failed to install K3s. Please check the logs above.${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Installation complete! K3s is now running with your custom configuration.${NC}"
+echo -e "${YELLOW}Note: Regular snapshots will be created according to the cron schedule (every 3 hours).${NC}"
+
+# To Check Snapshots:
+sudo ls -la /opt/k3s-data/snapshots
+
+nano install-k3s.sh
+chmod +x install-k3s.sh
+sudo ./install-k3s.sh
+
+# Check K3s status
+sudo systemctl status k3s
+
+# Verify snapshot directory exists
+sudo ls -la /opt/k3s-data/server/db
+
+# Test kubectl access
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+kubectl get nodes -o wide
+
+# Stop K3s service
+sudo systemctl stop k3s
+
+# Run uninstall script
+sudo /usr/local/bin/k3s-uninstall.sh
+
+sudo rm -rf /var/lib/rancher/k3s
+sudo rm -rf /etc/rancher/k3s
+#sudo rm -rf /opt/k3s-data
+
+# Remove kubeconfig
+sudo rm ~/.kube/config
