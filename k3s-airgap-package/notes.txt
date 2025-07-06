@@ -1,2 +1,35 @@
+1. Download K3s binary 
 curl -Lo k3s "https://github.com/k3s-io/k3s/releases/download/v1.32.6%2Bk3s1/k3s"
 chmod +x k3s
+
+2. Download container images used by K3s
+
+2.1 Install crictl
+curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.29.0/crictl-v1.29.0-linux-amd64.tar.gz
+sudo tar -C /usr/local/bin -xzf crictl-v1.29.0-linux-amd64.tar.gz
+rm crictl-v1.29.0-linux-amd64.tar.gz
+
+crictl --version
+
+2.2 Install JQ
+sudo apt update
+sudo apt install -y jq
+
+2.3 container images
+sudo crictl --runtime-endpoint unix:///run/k3s/containerd/containerd.sock images -o json \
+  | jq -r '.images[].repoTags[]' \
+  | grep -v '<none>' \
+  | tee k3s-images.txt
+
+sudo ctr --namespace k8s.io images list -q > canonical-images.txt
+
+while read IMAGE; do
+  SANITIZED_NAME=$(echo "$IMAGE" | sed 's|[/:@]|_|g')
+  echo "Exporting: $IMAGE → $SANITIZED_NAME.tar"
+  sudo ctr --namespace k8s.io images export "$SANITIZED_NAME.tar" "$IMAGE"
+done < canonical-images.txt
+
+
+
+mkdir k3s-images cd k3s-images
+
