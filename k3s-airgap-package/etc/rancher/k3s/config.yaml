@@ -1,0 +1,12 @@
+data-dir: /opt/k3s-data
+write-kubeconfig-mode: "644"
+disable:
+  - traefik
+cluster-init: true
+etcd-snapshot: true
+etcd-snapshot-schedule-cron: "0 */3 * * *"
+etcd-snapshot-retention: 5
+etcd-snapshot-dir: "/opt/k3s-data/snapshots"
+kube-apiserver-arg:
+  - "enable-admission-plugins=NodeRestriction,EventRateLimit"
+  - "admission-control-config-file=/opt/k3s-data/server/conf/admission-control.yaml"
