@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-auth
+  namespace: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-auth
+  template:
+    metadata:
+      labels:
+        app: nginx-auth
+    spec:
+      containers:
+      - name: nginx-auth
+        image: nginx-auth:offline
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /etc/nginx/ssl
+        - name: api-keys
+          mountPath: /etc/api-keys
+          readOnly: true
+      volumes:
+      - name: tls-certs
+        secret:
+          secretName: ollama-tls-cert-host
+      - name: api-keys
+        secret:
+          secretName: api-keys
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-auth
+  namespace: nginx
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+  - name: https
+    port: 443
+    targetPort: 443
+    nodePort: 30443
+  selector:
+    app: nginx-auth

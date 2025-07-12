@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-keys
+  namespace: nginx
+type: Opaque
+stringData:
+  key1: "12345"
+  key2: "secret-key-2"
+  key3: "secret-key-3"
