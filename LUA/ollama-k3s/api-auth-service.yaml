@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-auth
+  namespace: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-auth
+  template:
+    metadata:
+      labels:
+        app: api-auth
+    spec:
+      containers:
+      - name: api-auth
+        image: python:3.9-alpine
+        ports:
+        - containerPort: 8080
+        env:
+        - name: API_KEY1
+          valueFrom:
+            secretKeyRef:
+              name: api-keys
+              key: key1
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          # Create the app directory first
+          mkdir -p /app
+          
+          cat > /app/auth_server.py << 'EOF'
+          import os
+          import http.server
+          import socketserver
+          
+          class AuthHandler(http.server.BaseHTTPRequestHandler):
+              def do_GET(self):
+                  # Get API keys from environment
+                  valid_keys = [
+                      os.environ.get('API_KEY1', '')
+                  ]
+                  
+                  # Get the API key from request header
+                  api_key = self.headers.get('X-API-Key', '')
+                  
+                  if api_key in valid_keys:
+                      self.send_response(200)
+                      self.send_header('X-API-Key', api_key)
+                      self.end_headers()
+                      self.wfile.write(b"OK")
+                      print("Authentication successful")
+                  else:
+                      self.send_response(401)
+                      self.end_headers()
+                      self.wfile.write(b"Unauthorized")
+                      print("Authentication failed")
+          
+          handler = AuthHandler
+          with socketserver.TCPServer(("", 8080), handler) as httpd:
+              print("Serving auth requests at port 8080")
+              httpd.serve_forever()
+          EOF
+          
+          echo "Starting authentication server..."
+          python /app/auth_server.py
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-auth
+  namespace: nginx
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: api-auth

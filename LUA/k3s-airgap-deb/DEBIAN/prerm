@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "The k3s-airgap package is being removed."
+echo "Note: This will NOT automatically uninstall K3s."
+echo "To uninstall K3s before removing this package, run: sudo k3s-airgap-uninstall"
+exit 0

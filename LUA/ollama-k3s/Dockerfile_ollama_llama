@@ -1,0 +1,15 @@
+FROM ollama/ollama:latest
+
+# Set environment variable for offline mode
+ENV OLLAMA_HOST=0.0.0.0
+
+# Start Ollama server, download model, then stop server (all during build)
+RUN ollama serve & \
+    sleep 10 && \
+    ollama pull llama3 && \
+    pkill ollama && \
+    sleep 5
+
+# Keep the original entrypoint
+ENTRYPOINT ["/bin/ollama"]
+CMD ["serve"]

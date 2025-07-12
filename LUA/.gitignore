@@ -1,0 +1,9 @@
+# ignore tar files
+*.tar
+# ignore k3s binary anywhere in the repository but not directories
+/k3s
+**/k3s
+!*/k3s/
+# ignore deb packages
+*.deb
+*.tar.gz

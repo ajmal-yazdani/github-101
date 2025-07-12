@@ -1,0 +1,10 @@
+Package: k3s-airgap
+Version: 1.0.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Depends: bash, systemd
+Maintainer: ajaml.yazdani@honeywell.com
+Description: Air-gapped K3s Kubernetes installation package
+ This package provides everything needed to install K3s
+ in an air-gapped environment without internet access.

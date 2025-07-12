@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+  namespace: nginx
+data:
+  ssl-protocols: "TLSv1.2 TLSv1.3"
+  ssl-ciphers: "HIGH:!aNULL:!MD5"
+  server-tokens: "false"
+  http-snippet: |
+    server {
+      listen 80;
+      return 301 https://$host$request_uri;
+    }

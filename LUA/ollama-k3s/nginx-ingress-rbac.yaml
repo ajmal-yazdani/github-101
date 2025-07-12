@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nginx-ingress-sa
+  namespace: nginx
+---
+# ClusterRole with all required permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nginx-ingress-clusterrole
+rules:
+  # Core API resources
+  - apiGroups: ['']
+    resources: ['configmaps', 'endpoints', 'nodes', 'pods', 'secrets', 'services']
+    verbs: ['get', 'list', 'watch']
+  # Access to services/status for updating
+  - apiGroups: ['']
+    resources: ['services/status']
+    verbs: ['update', 'patch']
+  # Events permissions
+  - apiGroups: ['']
+    resources: ['events']
+    verbs: ['create', 'patch', 'get', 'list']
+  # EndpointSlices for service discovery
+  - apiGroups: ['discovery.k8s.io']
+    resources: ['endpointslices']
+    verbs: ['get', 'list', 'watch']
+  # Ingress resources permissions
+  - apiGroups: ['networking.k8s.io']
+    resources: ['ingresses', 'ingressclasses']
+    verbs: ['get', 'list', 'watch']
+  # Ingress status update permissions
+  - apiGroups: ['networking.k8s.io']
+    resources: ['ingresses/status']
+    verbs: ['update', 'patch']
+  # Leader election permissions
+  - apiGroups: ['coordination.k8s.io']
+    resources: ['leases']
+    verbs: ['get', 'list', 'watch', 'create', 'update', 'patch', 'delete']
+---
+# ClusterRoleBinding to grant the ServiceAccount cluster-wide permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nginx-ingress-clusterrolebinding
+subjects:
+  - kind: ServiceAccount
+    name: nginx-ingress-sa
+    namespace: nginx
+roleRef:
+  kind: ClusterRole
+  name: nginx-ingress-clusterrole
+  apiGroup: rbac.authorization.k8s.io

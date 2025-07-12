@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      initContainers:
+      - name: copy-models
+        image: ollama-llama:offline
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "===== Starting init container ====="
+            # Check model file size in image
+            echo "Checking model files in image:"
+            find /root/.ollama -type f -size +100M -exec ls -lh {} \;
+            
+            # Check if manifests exist in image
+            echo "Checking model manifests in image:"
+            find /root/.ollama/models/manifests -type f -exec ls -lh {} \;
+            
+            # Create target directory
+            mkdir -p /mnt/ollama
+            
+            # Direct copy of entire directory structure
+            echo "Copying complete .ollama directory to PVC..."
+            cp -rp /root/.ollama/* /mnt/ollama/
+            
+            # Verify copy was successful
+            echo "Verifying copied files:"
+            find /mnt/ollama -type f -size +100M -exec ls -lh {} \;
+            find /mnt/ollama/models/manifests -type f -exec ls -lh {} \;
+            
+            # Create a flag file to indicate models are preloaded
+            touch /mnt/ollama/models/.preloaded
+            
+            echo "Copy operation completed"
+        volumeMounts:
+        - name: ollama-data
+          mountPath: /mnt/ollama
+      containers:
+      - name: ollama
+        image: ollama-llama:offline
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # Set environment variables to prevent model pruning
+            export OLLAMA_NOPRUNE=true
+            
+            # Check models before starting server
+            echo "Checking models before server start:"
+            find /root/.ollama -type f -size +100M -exec ls -lh {} \; || echo "No large model files found"
+            
+            # Start Ollama with noprune option
+            exec /bin/ollama serve
+        env:
+        - name: OLLAMA_NOPRUNE
+          value: "true"
+        ports:
+        - containerPort: 11434
+        volumeMounts:
+        - name: ollama-data
+          mountPath: /root/.ollama
+        resources:
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+      volumes:
+      - name: ollama-data
+        persistentVolumeClaim:
+          claimName: ollama-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+spec:
+  selector:
+    app: ollama
+  ports:
+  - port: 11434
+    targetPort: 11434
+  type: ClusterIP

@@ -1,0 +1,10 @@
+#!/bin/bash
+# Enable k3s service but don't start it automatically
+systemctl daemon-reload
+echo "K3s airgap package installed successfully!"
+echo "To complete installation, run: sudo k3s-airgap-install"
+chmod +x /usr/share/k3s-airgap/install-k3s-airgap.sh
+chmod +x /usr/share/k3s-airgap/uninstall-k3s-airgap.sh
+chmod +x /usr/local/bin/k3s-airgap-install
+chmod +x /usr/local/bin/k3s-airgap-uninstall
+exit 0

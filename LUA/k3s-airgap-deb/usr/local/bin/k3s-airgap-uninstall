@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /usr/share/k3s-airgap
+sudo ./uninstall-k3s-airgap.sh

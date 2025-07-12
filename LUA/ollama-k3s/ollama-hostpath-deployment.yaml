@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: nginx  # Changed from default to nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: ollama-base:offline  # Use your base image without models
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: OLLAMA_NOPRUNE
+          value: "true"
+        ports:
+        - containerPort: 11434
+        volumeMounts:
+        - name: ollama-models
+          mountPath: /root/.ollama/models
+        - name: ollama-keys
+          mountPath: /root/.ollama/id_ed25519
+          subPath: id_ed25519
+        - name: ollama-keys
+          mountPath: /root/.ollama/id_ed25519.pub
+          subPath: id_ed25519.pub
+        resources:
+          limits:
+            cpu: "3"
+            memory: "6Gi"
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+      volumes:
+      - name: ollama-models
+        hostPath:
+          path: /opt/ollama/models
+          type: Directory
+      - name: ollama-keys
+        hostPath:
+          path: /opt/ollama
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: nginx  # Changed from default to nginx
+spec:
+  selector:
+    app: ollama
+  ports:
+  - port: 11434
+    targetPort: 11434
+  type: ClusterIP

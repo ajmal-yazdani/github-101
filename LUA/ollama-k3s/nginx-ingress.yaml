@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-ingress-controller
+  namespace: nginx
+  labels:
+    app: nginx-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-ingress
+  template:
+    metadata:
+      labels:
+        app: nginx-ingress
+    spec:
+      serviceAccountName: nginx-ingress-sa
+      containers:
+        - name: controller
+          image: registry.k8s.io/ingress-nginx/controller:v1.13.0
+          args:
+            - /nginx-ingress-controller
+            - --configmap=$(POD_NAMESPACE)/nginx-configuration
+            - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: https
+              containerPort: 443
+          volumeMounts:
+            - name: api-auth-config
+              mountPath: /etc/nginx/conf.d/api-key.conf
+              subPath: api-key.conf
+            - name: api-keys-dir
+              mountPath: /etc/nginx/api-keys
+      volumes:
+        - name: api-auth-config
+          configMap:
+            name: nginx-api-auth-config
+        - name: api-keys-dir
+          configMap:
+            name: api-keys-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller
+  namespace: nginx
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - 10.12.157.169
+  ports:
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP
+  selector:
+    app: nginx-ingress
