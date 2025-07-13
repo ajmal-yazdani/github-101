@@ -21,10 +21,10 @@ error() {
 log "\nDeploying Nginx Auth in air-gapped K3s with Kubernetes Secrets"
 log "============================================================="
 
-# Get hostname
-HOST=$(hostname -f)
+# Get hostname and convert to lowercase
+HOST=$(hostname -f | tr '[:upper:]' '[:lower:]')
 if [ -z "$HOST" ]; then 
-    HOST=$(hostname)
+    HOST=$(hostname | tr '[:upper:]' '[:lower:]')
     log "${YELLOW}WARNING: Could not get FQDN, using short hostname: ${HOST}${NC}"
 fi
 

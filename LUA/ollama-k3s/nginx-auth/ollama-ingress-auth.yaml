@@ -13,10 +13,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - LAPTOP-E7T7EI54
+    - laptop-e7t7ei54
     secretName: ollama-tls-cert-host
   rules:
-  - host: LAPTOP-E7T7EI54
+  - host: laptop-e7t7ei54
     http:
       paths:
       - path: /

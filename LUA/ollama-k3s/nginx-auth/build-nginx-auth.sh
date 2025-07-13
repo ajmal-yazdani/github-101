@@ -9,7 +9,7 @@ NC='\033[0m'
 echo -e "${YELLOW}Building Nginx Auth image for air-gapped environment${NC}"
 echo "==================================================="
 
-# Get hostname for configuration
+# Get hostname for configuration and convert to lowercase
 HOSTNAME=$(hostname | tr '[:upper:]' '[:lower:]')
 echo -e "${YELLOW}Using hostname: ${HOSTNAME}${NC}"
 
@@ -89,9 +89,8 @@ http {
 }
 EOF
 
-# Get the hostname before creating default.conf
-HOSTNAME=$(hostname)
-echo -e "${YELLOW}Using hostname: ${HOSTNAME}${NC}"
+# Already set hostname in lowercase at the start of script
+echo -e "${YELLOW}Creating configuration with hostname: ${HOSTNAME}${NC}"
 
 echo -e "${YELLOW}Creating default server configuration...${NC}"
 cat > default.conf << EOF

@@ -142,6 +142,9 @@ sudo docker cp temp-ollama:/root/.ollama/. ~/OAK3S/ollama-k3s/ollama-models-temp
 cd ~/ollama-models-temp
 sudo tar -czvf ~/ollama-models.tar.gz .
 
+# Create compressed tar archive from current directory
+sudo tar -czvf ~/repos/github-101/LUA/ollama-k3s/ollama-models.tar.gz .
+
 # Verify the tar file was created successfully
 ls -lh ~/ollama-models.tar.gz
 
