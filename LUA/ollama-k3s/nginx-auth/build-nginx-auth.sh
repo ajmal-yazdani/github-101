@@ -1,13 +1,25 @@
 #!/bin/bash
 set -e
-echo "Building Nginx Auth image for air-gapped environment"
+
+# Define colors for better output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${YELLOW}Building Nginx Auth image for air-gapped environment${NC}"
 echo "==================================================="
 
+# Get hostname for configuration
+HOSTNAME=$(hostname | tr '[:upper:]' '[:lower:]')
+echo -e "${YELLOW}Using hostname: ${HOSTNAME}${NC}"
+
+# Clean up existing files
+echo -e "${YELLOW}Cleaning up existing files...${NC}"
+rm -rf lua nginx.conf default.conf Dockerfile nginx-auth-offline.tar ollama-ingress-auth.yaml
 mkdir -p lua
 
-if [ ! -f lua/api-key-auth.lua ]; then
-  echo "Creating Lua authentication script..."
-  cat > lua/api-key-auth.lua << 'EOF'
+echo -e "${YELLOW}Creating Lua authentication script...${NC}"
+cat > lua/api-key-auth.lua << 'EOF'
 local cjson = require "cjson"
 local io = require "io"
 
@@ -58,11 +70,9 @@ end
 
 ngx.req.set_header("X-API-Key", api_key)
 EOF
-fi
 
-if [ ! -f nginx.conf ]; then
-  echo "Creating Nginx configuration..."
-  cat > nginx.conf << 'EOF'
+echo -e "${YELLOW}Creating Nginx configuration...${NC}"
+cat > nginx.conf << 'EOF'
 worker_processes auto;
 events { worker_connections 1024; }
 http {
@@ -78,15 +88,13 @@ http {
     include /etc/nginx/conf.d/*.conf;
 }
 EOF
-fi
 
 # Get the hostname before creating default.conf
 HOSTNAME=$(hostname)
-echo "Using hostname: $HOSTNAME"
+echo -e "${YELLOW}Using hostname: ${HOSTNAME}${NC}"
 
-if [ ! -f default.conf ]; then
-  echo "Creating default server configuration..."
-  cat > default.conf << EOF
+echo -e "${YELLOW}Creating default server configuration...${NC}"
+cat > default.conf << EOF
 lua_package_path '/etc/nginx/lua/?.lua;;';
 server {
     listen 80;
@@ -112,11 +120,9 @@ server {
     }
 }
 EOF
-fi
 
-if [ ! -f Dockerfile ]; then
-  echo "Creating Dockerfile..."
-  cat > Dockerfile << 'EOF'
+echo -e "${YELLOW}Creating Dockerfile...${NC}"
+cat > Dockerfile << 'EOF'
 FROM openresty/openresty:focal
 RUN luarocks install lua-cjson
 RUN mkdir -p /etc/nginx/lua
@@ -129,11 +135,46 @@ RUN mkdir -p /var/log/nginx/ && touch /var/log/nginx/error.log && touch /var/log
 EXPOSE 80 443
 CMD ["openresty", "-g", "daemon off;"]
 EOF
-fi
 
-echo "Building Docker image..."
+echo -e "${YELLOW}Creating Ingress configuration...${NC}"
+cat > ollama-ingress-auth.yaml << EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ollama-ingress
+  namespace: nginx
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - ${HOSTNAME}
+    secretName: ollama-tls-cert-host
+  rules:
+  - host: ${HOSTNAME}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-auth
+            port:
+              number: 443
+EOF
+
+echo -e "${YELLOW}Building Docker image...${NC}"
 docker build -t nginx-auth:offline .
-echo "Saving image to tar file..."
+
+echo -e "${YELLOW}Saving image to tar file...${NC}"
 docker save nginx-auth:offline -o nginx-auth-offline.tar
-echo "Build complete. Image saved as nginx-auth-offline.tar"
-echo "To import into K3s: sudo k3s ctr images import nginx-auth-offline.tar"
+
+echo -e "${GREEN}Build complete! Image saved as nginx-auth-offline.tar${NC}"
+echo -e "${YELLOW}To import into K3s:${NC}"
+echo -e "  1. sudo k3s ctr images import nginx-auth-offline.tar"
+echo -e "  2. kubectl apply -f ollama-ingress-auth.yaml"

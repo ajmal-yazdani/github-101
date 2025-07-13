@@ -13,10 +13,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - k3s-airgap
+    - LAPTOP-E7T7EI54
     secretName: ollama-tls-cert-host
   rules:
-  - host: k3s-airgap
+  - host: LAPTOP-E7T7EI54
     http:
       paths:
       - path: /

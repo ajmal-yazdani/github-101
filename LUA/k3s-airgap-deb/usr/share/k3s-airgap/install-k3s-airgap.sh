@@ -191,4 +191,43 @@ done
 # Display cluster info
 echo -e "${GREEN}K3s cluster is ready!${NC}"
 kubectl get nodes -o wide
-echo -e "${GREEN}K3s air-gapped installation completed successfully!${NC}"
+
+# Setup user kubeconfig
+echo -e "${YELLOW}Setting up user kubeconfig...${NC}"
+if [ -n "${SUDO_USER}" ]; then
+    USER_HOME=$(eval echo ~${SUDO_USER})
+    mkdir -p ${USER_HOME}/.kube
+    cp /etc/rancher/k3s/k3s.yaml ${USER_HOME}/.kube/config
+    chown -R ${SUDO_USER}:${SUDO_USER} ${USER_HOME}/.kube
+    chmod 600 ${USER_HOME}/.kube/config
+
+    # Detect shell and update RC file
+    USER_SHELL=$(getent passwd ${SUDO_USER} | cut -d: -f7)
+    if [[ "$USER_SHELL" == */zsh ]]; then
+        RC_FILE="${USER_HOME}/.zshrc"
+    else
+        RC_FILE="${USER_HOME}/.bashrc"
+    fi
+    
+    # Add KUBECONFIG if not already present
+    if ! grep -q "export KUBECONFIG=" "$RC_FILE" 2>/dev/null; then
+        echo 'export KUBECONFIG=~/.kube/config' >> "$RC_FILE"
+        echo -e "${GREEN}Added KUBECONFIG to ${RC_FILE}${NC}"
+    fi
+    
+    # Apply permissions
+    chown ${SUDO_USER}:${SUDO_USER} "$RC_FILE"
+fi
+
+# Verify cluster access
+echo -e "${YELLOW}Verifying cluster access...${NC}"
+if su - ${SUDO_USER} -c "kubectl get nodes" >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Cluster access verified successfully${NC}"
+else
+    echo -e "${YELLOW}⚠️ Note: You may need to log out and back in for kubectl to work properly${NC}"
+fi
+
+echo -e "${GREEN}✅ K3s air-gapped installation completed successfully!${NC}"
+echo -e "${YELLOW}To start using kubectl, either:${NC}"
+echo -e "  1. Log out and log back in, or"
+echo -e "  2. Run: source ${RC_FILE}"

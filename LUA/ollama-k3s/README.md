@@ -38,6 +38,8 @@ Set up your environment with Docker installed.
 # Build the image
 sudo docker build -t ollama-llama:offline .
 
+sudo docker build -t ollama-llama:offline -f Dockerfile_ollama_llama . 
+
 # Save the image to a tar file
 sudo docker save ollama-llama:offline -o ollama-llama-offline.tar
 ```
@@ -172,6 +174,19 @@ sudo du -sh /opt/ollama
 
 ## Deploy the ollama POD
 ```bash
+
+#Copy the K3s kubeconfig to your home directory (if not already done):
+# Create .kube directory if it doesn't exist
+mkdir -p ~/.kube
+
+# Copy and set permissions for the config file
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+chmod 600 ~/.kube/config
+
+# Set KUBECONFIG environment variable
+export KUBECONFIG=~/.kube/config
+
 # Apply the deployment
 kubectl apply -f ollama-hostpath-deployment.yaml
 
